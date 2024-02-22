@@ -7,16 +7,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const uploadOnCloudinary = async (localFilePath) => {
+export const uploadToCloudinary = async (localFilePath, folder = "") => {
   try {
     if (!localFilePath) return null;
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
+      folder,
     });
-    fs.unlink(localFilePath);
+    fs.unlinkSync(localFilePath);
     return response;
   } catch (error) {
-    fs.unlink(localFilePath);
+    fs.unlinkSync(localFilePath);
     return null;
   }
 };
@@ -29,4 +30,10 @@ export const deleteFromCloudinary = async (publicId) => {
   } catch (error) {
     return null;
   }
+};
+
+export const getPublicIdFromUrl = (url) => {
+  const regex = /\/v\d+\/([^/]+)\.\w{3,4}$/;
+  const match = url.match(regex);
+  return match?.[1];
 };
