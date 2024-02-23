@@ -4,7 +4,6 @@ import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import {
   uploadToCloudinary,
-  getPublicIdFromUrl,
   deleteFromCloudinary,
 } from "../utils/cloudinary.js";
 
@@ -66,17 +65,41 @@ export const updateAvatar = asyncHandler(async (req, res) => {
   if (!avatar) throw new ApiError(500, "Failed to upload avatar");
 
   const site = await SiteDetail.findOne();
-  const oldAvatar = getPublicIdFromUrl(site.avatarUrl);
 
-  await deleteFromCloudinary(oldAvatar);
+  if (site.avatarPublicId) await deleteFromCloudinary(site.avatarPublicId);
 
   const updatedSite = await SiteDetail.findOneAndUpdate(
     {},
-    { avatarUrl: avatar.url },
+    { avatarPublicId: avatar.public_id },
     { new: true }
   );
 
   return res
     .status(200)
     .json(new ApiResponse(200, updatedSite, "Avatar updated successfully"));
+});
+
+export const updateCoverImage = asyncHandler(async (req, res) => {
+  const coverImagePath = req.file?.path;
+  if (!coverImagePath)
+    throw new ApiError(400, "No cover image provided to update");
+
+  const coverImage = await uploadToCloudinary(coverImagePath, "/SiteAssets");
+  if (!coverImage) throw new ApiError(500, "Failed to upload cover image");
+
+  const site = await SiteDetail.findOne();
+
+  await deleteFromCloudinary(site.coverImagePublicId);
+
+  const updatedSite = await SiteDetail.findOneAndUpdate(
+    {},
+    { coverImagePublicId: coverImage.public_id },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedSite, "Cover image updated successfully")
+    );
 });
