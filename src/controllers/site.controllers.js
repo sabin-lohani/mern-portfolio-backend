@@ -14,10 +14,45 @@ export const getSiteData = asyncHandler(async (req, res) => {
 });
 
 export const updateSiteData = asyncHandler(async (req, res) => {
-  if (Object.keys(req.body).length === 0)
+  const {
+    ownerName,
+    email,
+    address,
+    locationUrl,
+    phone,
+    youtubeChannelUrl,
+    siteName,
+    siteDomain,
+  } = req.body;
+  if (
+    [
+      ownerName,
+      email,
+      address,
+      locationUrl,
+      phone,
+      youtubeChannelUrl,
+      siteName,
+      siteDomain,
+    ].some((field) => field?.trim() === "")
+  )
     throw new ApiError(400, "No data provided to update site details");
 
-  const site = await SiteDetail.findOneAndUpdate({}, req.body, { new: true });
+  const site = await SiteDetail.findOneAndUpdate(
+    {},
+    {
+      ownerName,
+      email,
+      address,
+      locationUrl,
+      phone,
+      youtubeChannelUrl,
+      siteName,
+      siteDomain,
+    },
+    { new: true }
+  );
+
   return res
     .status(200)
     .json(new ApiResponse(200, site, "Site details updated successfully"));
