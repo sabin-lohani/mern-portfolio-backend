@@ -2,10 +2,7 @@ import SiteDetail from "../models/SiteDetail.models.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
-import {
-  uploadToCloudinary,
-  deleteFromCloudinary,
-} from "../utils/cloudinary.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 export const getSiteData = asyncHandler(async (req, res) => {
   const siteData = await SiteDetail.findOne();
@@ -61,16 +58,16 @@ export const updateAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
   if (!avatarLocalPath) throw new ApiError(400, "No avatar provided to update");
 
-  const avatar = await uploadToCloudinary(avatarLocalPath, "/SiteAssets");
+  const avatar = await uploadToCloudinary(
+    avatarLocalPath,
+    "/SiteAssets",
+    req.user._id + "-avatar"
+  );
   if (!avatar) throw new ApiError(500, "Failed to upload avatar");
-
-  const site = await SiteDetail.findOne();
-
-  if (site.avatarPublicId) await deleteFromCloudinary(site.avatarPublicId);
 
   const updatedSite = await SiteDetail.findOneAndUpdate(
     {},
-    { avatarPublicId: avatar.public_id },
+    { avatarUrl: avatar.url },
     { new: true }
   );
 
@@ -84,16 +81,16 @@ export const updateCoverImage = asyncHandler(async (req, res) => {
   if (!coverImagePath)
     throw new ApiError(400, "No cover image provided to update");
 
-  const coverImage = await uploadToCloudinary(coverImagePath, "/SiteAssets");
+  const coverImage = await uploadToCloudinary(
+    coverImagePath,
+    "/SiteAssets",
+    req.user._id + "-cover-image"
+  );
   if (!coverImage) throw new ApiError(500, "Failed to upload cover image");
-
-  const site = await SiteDetail.findOne();
-
-  await deleteFromCloudinary(site.coverImagePublicId);
 
   const updatedSite = await SiteDetail.findOneAndUpdate(
     {},
-    { coverImagePublicId: coverImage.public_id },
+    { coverImageUrl: coverImage.url },
     { new: true }
   );
 
