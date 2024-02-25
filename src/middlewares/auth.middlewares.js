@@ -19,3 +19,8 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
   req.user = user;
   next();
 });
+
+export const authorizeAdmin = asyncHandler(async (req, _, next) => {
+  if (!req.user.isAdmin) throw new ApiError(403, "Unauthorized request");
+  next();
+});
